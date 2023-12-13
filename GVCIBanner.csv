@@ -1,0 +1,5 @@
+Menu Item,Note,Active
+Accounts Payable > File > Maintain Open AP > Open,This are notes for editing,Checked
+Accounts Payable > File > Vendors > Vendors,this a note for vendors,Unchecked
+Accounts Payable > Administration > Maintain Deposit IDs,notes for active,Unchecked
+Accounts Payable > Administration > Purge AP Zero Balance Invoices/Accruals/Receivers,hjkhjk,Unchecked
