@@ -1,0 +1,262 @@
+Program.Sub.ScreenSU.Start
+gui.F_Main..create
+gui.F_Main..caption("Link Conversion Tool")
+gui.F_Main..size(4410,2355)
+gui.F_Main..position(0,0)
+gui.F_Main..event(unload,f_main_unload)
+gui.F_Main..alwaysontop(False)
+gui.F_Main..fontname("Arial")
+gui.F_Main..fontsize(8)
+gui.F_Main..forecolor(0)
+gui.F_Main..fontstyle(,,,,)
+gui.F_Main..BackColor(-2147483633)
+gui.F_Main..controlbox(True)
+gui.F_Main..maxbutton(True)
+gui.F_Main..minbutton(True)
+gui.F_Main..mousepointer(0)
+gui.F_Main..moveable(True)
+gui.F_Main..sizeable(True)
+gui.F_Main..ShowInTaskBar(True)
+gui.F_Main..titlebar(True)
+gui.F_Main.pbCurrent.create(progressbar)
+gui.F_Main.pbCurrent.visible(True)
+gui.F_Main.pbCurrent.size(3735,255)
+gui.F_Main.pbCurrent.zorder(0)
+gui.F_Main.pbCurrent.position(200,300)
+gui.F_Main.pbCurrent.enabled(True)
+gui.F_Main.pbOverall.create(progressbar)
+gui.F_Main.pbOverall.visible(True)
+gui.F_Main.pbOverall.size(3735,255)
+gui.F_Main.pbOverall.zorder(0)
+gui.F_Main.pbOverall.position(200,800)
+gui.F_Main.pbOverall.enabled(True)
+gui.F_Main.cmdProcess.create(button)
+gui.F_Main.cmdProcess.caption("Process")
+gui.F_Main.cmdProcess.visible(True)
+gui.F_Main.cmdProcess.size(855,375)
+gui.F_Main.cmdProcess.zorder(0)
+gui.F_Main.cmdProcess.position(3100,1200)
+gui.F_Main.cmdProcess.enabled(True)
+gui.F_Main.cmdProcess.fontname("Arial")
+gui.F_Main.cmdProcess.fontsize(8)
+gui.F_Main.cmdProcess.event(click,cmdprocess_click)
+gui.F_Main.chkConvertToDocument.create(checkbox)
+gui.F_Main.chkConvertToDocument.caption("Convert to Document Control")
+gui.F_Main.chkConvertToDocument.visible(True)
+gui.F_Main.chkConvertToDocument.size(2610,255)
+gui.F_Main.chkConvertToDocument.zorder(0)
+gui.F_Main.chkConvertToDocument.position(260,1265)
+gui.F_Main.chkConvertToDocument.enabled(True)
+gui.F_Main.chkConvertToDocument.alignment(0)
+gui.F_Main.chkConvertToDocument.fontname("Arial")
+gui.F_Main.chkConvertToDocument.fontsize(8)
+gui.F_Main.lbl1.create(label)
+gui.F_Main.lbl1.caption("Overall Progress")
+gui.F_Main.lbl1.backstyle(0)
+gui.F_Main.lbl1.visible(True)
+gui.F_Main.lbl1.size(1935,255)
+gui.F_Main.lbl1.zorder(1)
+gui.F_Main.lbl1.position(200,600)
+gui.F_Main.lbl1.enabled(True)
+gui.F_Main.lbl1.alignment(0)
+gui.F_Main.lbl1.fontname("Arial")
+gui.F_Main.lbl1.fontsize(8)
+gui.F_Main.lbl1.BackColor(-2147483633)
+gui.F_Main.lbl2.create(label)
+gui.F_Main.lbl2.caption("Current Progress")
+gui.F_Main.lbl2.backstyle(0)
+gui.F_Main.lbl2.visible(True)
+gui.F_Main.lbl2.size(1935,255)
+gui.F_Main.lbl2.zorder(1)
+gui.F_Main.lbl2.position(200,95)
+gui.F_Main.lbl2.enabled(True)
+gui.F_Main.lbl2.alignment(0)
+gui.F_Main.lbl2.fontname("Arial")
+gui.F_Main.lbl2.fontsize(8)
+gui.F_Main.lbl2.BackColor(-2147483633)
+
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Definition.DefaultArgs("add_documents","id*!*bNoCopy*!*file*!*description")
+Variable.Global.Company.Declare(String)
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'enm
+'6/9/10 for Goetsch's Welding
+V.Local.sDB.Declare(String)
+
+'F.Intrinsic.String.Concat("C:\Users\jnd\Desktop\Conversion\HTM","\HTM\HLINK.mdb",V.Local.sDB)
+'V.Global.Company.Set("JES")
+
+F.Intrinsic.String.Concat("C:\Users\enm\Desktop\HTM","\HLINK.mdb",V.Local.sDB)
+V.Global.Company.Set("GWM")
+
+F.ODBC.Connection!conx.OpenMDBConnection(V.Local.sDB)
+Gui.F_Main..Show
+
+
+Program.Sub.Main.End
+
+program.sub.cmdprocess_click.start
+V.Local.sQuery.Declare(String)
+V.Local.iCounter.Declare(Long,0)
+V.Local.sCompany.Declare(String)
+V.Local.iLinkID.Declare(Long)
+V.Local.sRef.Declare(String)
+V.Local.sType.Declare(String)
+V.Local.scounter.Declare(String)
+V.Local.ipos.Declare(Long)
+V.Local.sFile.Declare(String)
+V.Local.sPath.Declare(String)
+V.Local.stitles.Declare(String)
+V.Local.sfiles.Declare(String)
+V.Local.iX.Declare(Long)
+V.Local.iID.Declare(Long)
+V.Local.sLinkURL.Declare(String)
+V.Local.sErrors.Declare(String)
+V.Local.bRet.Declare(Boolean)
+V.Local.sText.Declare(String)
+V.Local.sURLPath.Declare(String)
+
+F.Intrinsic.UI.Msgbox(V.Ambient.PDSN)
+F.ODBC.Connection!conP.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+F.ODBC.Connection!conp.Execute("DELETE FROM LINK_DATA")
+'
+F.ODBC.Connection!conp.Execute("DELETE FROM ATG_DOC_ASSOC")
+F.Intrinsic.Control.ErrorResume(True)
+Gui.F_Main.cmdProcess.Enabled(false)
+
+F.Intrinsic.string.Concat("SELECT COUNT(LINKREF) AS LINKREF_COUNT FROM LinkData WHERE LinkCompany = '",V.Global.Company,"'",V.Local.sQuery)
+F.ODBC.Connection!conx.OpenRecordsetRO("rst",V.Local.sQuery)
+F.Intrinsic.Control.If(V.ODBC.conx!rst.EOF,=,False)
+	V.Local.iCounter.Set(V.ODBC.conx!rst.FieldVallong!LINKREF_COUNT)
+	gui.F_Main.pbCurrent.Max(V.Local.iCounter.++)
+F.Intrinsic.Control.endif
+F.ODBC.Conx!rst.close
+V.Local.iCounter.Set(0)
+'F.Intrinsic.Debug.Stop
+F.Intrinsic.string.Concat("SELECT * FROM LinkData WHERE LinkCompany = '",V.global.Company,"'ORDER BY LinkRef",V.Local.sQuery)
+F.ODBC.Connection!conx.OpenRecordsetRO("rst",V.Local.sQuery)
+F.Intrinsic.Control.dountil(V.ODBC.conx!rst.EOF,=,True)
+'	F.Intrinsic.String.LPad(V.ODBC.conx!rst.FieldValTrim!LinkType,"0",5,V.Local.sType)
+	V.Local.sType.Set(V.ODBC.conx!rst.FieldValTrim!LinkType)
+	F.Intrinsic.String.Replace(V.ODBC.conX!rst.FieldValTrim!LinkRef,"'","''",V.Local.sRef)
+	F.Global.DocumentControl.CreateReference(V.Local.sRef,V.Local.stype,V.Local.iID)
+'	F.Global.DocumentControl.GetLinkID(V.Local.sRef,V.Local.sType,V.Local.iID)
+	F.Intrinsic.Control.If(V.Local.iID,<>,-1)
+		F.Intrinsic.Control.If(V.ODBC.conx!rst.FieldValTrim!LinkNotes,<>,"")
+			F.Intrinsic.String.Concat("SELECT * FROM LINK_NOTE WHERE LINK_ID = '",V.Local.iID,"'",V.Local.sQuery)
+			F.ODBC.Connection!conP.OpenRecordsetRW("rstX",V.Local.sQuery)
+			F.Intrinsic.Control.If(V.ODBC.conP!rstx.EOF,=,True)
+				F.ODBC.conP!rstx.AddNew
+				F.ODBC.conP!rstx.Set!LINK_ID(V.Local.iID)
+			F.Intrinsic.Control.EndIf
+			F.ODBC.conP!rstx.Set!NOTE(V.ODBC.conx!rst.FieldValTrim!LinkNOtes)
+			F.ODBC.conP!rstx.Set!Info0(" ")
+			F.ODBC.conP!rstx.Set!Info1(" ")
+			F.ODBC.conP!rstx.Set!Info2(" ")
+			F.ODBC.conP!rstx.Set!Info3(" ")
+			F.ODBC.conP!rstx.Set!Info4(" ")
+			F.ODBC.conP!rstx.Set!Info5(" ")
+			F.ODBC.conP!rstx.Set!Info6(" ")
+			F.ODBC.conP!rstx.Set!Info7(" ")
+			F.odbc.conP!rstx.Update
+			F.ODBC.conP!rstx.close
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.endif
+	F.Intrinsic.Control.If(V.Screen.F_Main!chkConvertToDocument.Value,=,1)
+
+		V.Local.sLinkURL.Set(V.ODBC.conx!rst.FieldVal!LINKURL)
+		F.Intrinsic.String.UCase(V.Local.sLinkURL,V.Local.sLinkURL)
+		F.Intrinsic.String.UCase("O:\Apps\Infisy\Plugins\htm",V.Local.sText)
+		F.Intrinsic.String.replace(V.Local.sLinkURL,V.Local.sText,"C:\Users\enm\Desktop\HTM",V.Local.sURLPath)
+
+
+		F.Intrinsic.File.Exists(V.Local.sURLPath,V.Local.bRet)
+		F.Intrinsic.Control.If(V.Local.bRet,=,True)
+			'F.Intrinsic.Debug.Stop
+			'F.Intrinsic.String.Split(V.Local.sURLPath,"\HTM\",V.Local.sText)
+			'V.Local.sFile.Set(V.Local.sText(1))
+			F.Intrinsic.file.File2String(V.Local.sURLPath,V.Local.sFile)
+	'		F.Intrinsic.String.Replace(V.Local.sFile,"file://I:","file:///I|",V.Local.sFile)
+	'		F.Intrinsic.File.String2File("X:\Temp.htm",V.Local.sFile)
+			
+			F.Intrinsic.Control.ClearErrors
+			F.Intrinsic.String.ExtractHTMLLinks(V.Local.sFile,V.Local.sTitles,V.Local.sFiles)
+
+			F.Intrinsic.Control.If(V.Ambient.ErrorNumber,=,0)
+				F.Intrinsic.Control.If(V.Local.sfiles,<>,"***NONE***")
+								F.Intrinsic.Debug.Stop
+					F.Intrinsic.Control.For(V.Local.iX,V.Local.sfiles.LBound,V.Local.sfiles.UBound,1)
+						F.Intrinsic.Debug.Stop
+						F.Intrinsic.Control.CallSub(Add_documents,"id",V.Local.iID,"bNoCopy","false","description",V.Local.stitles(v.Local.iX),"file",V.Local.sFiles(v.Local.ix))
+					F.Intrinsic.Control.Next(V.Local.iX)
+				F.Intrinsic.Control.EndIf
+				F.Intrinsic.Control.CallSub(Add_documents,"id",V.Local.iID,"bNoCopy","false","description","LINKV3 HTML","file",V.ODBC.conx!rst.FieldVal!LINKURL)
+
+			F.Intrinsic.Control.Else
+				F.Intrinsic.Debug.Stop
+				'F.Intrinsic.String.Concat(V.Local.sErrors,V.Ambient.NewLine,V.Ambient.NewLine,V.Local.sFile,V.Local.sErrors)
+				'F.Intrinsic.String.concat(V.Local.sLinkURL,"C:\HTM-JOHNE\HTM\","C:\Error\",V.Local.sLinkURL)
+				F.Intrinsic.File.String2File(V.Local.sURLpath,V.Local.sFile)
+			F.Intrinsic.Control.endif
+		F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.endif
+	F.Intrinsic.Math.Add(V.Local.iCounter,1,V.Local.iCounter)
+	Gui.F_Main.pbCurrent.Value(V.Local.iCounter)
+	F.ODBC.conx!rst.MoveNext
+F.Intrinsic.Control.Loop
+
+
+F.Intrinsic.Control.End
+
+program.sub.cmdprocess_click.end
+
+program.sub.f_main_unload.start
+
+F.ODBC.Connection!conx.Close
+F.Intrinsic.Control.End
+
+program.sub.f_main_unload.end
+
+Program.Sub.add_documents.Start
+
+V.Local.sCopy.Declare(String)
+V.Local.sFIle.Declare(String)
+V.Local.shold.Declare(String)
+V.Local.shold.Redim(0,2)
+V.Local.iPos.Declare(Long)
+V.Local.squery.Declare(String)
+V.Local.sret.Declare(String)
+V.Local.bTest.Declare(Boolean)
+V.Local.bCopy.Declare(Boolean)
+V.Local.sPath.Declare(String)
+
+V.Local.sFIle.Set(V.Args.file)
+F.Intrinsic.Debug.Stop
+F.Intrinsic.Control.If(V.Local.sFIle.Trim,<>,"")
+	F.Intrinsic.String.Replace(V.Local.sFIle.uCASE,"FILE:///","",V.Local.sFIle)
+'	F.Intrinsic.String.Replace(V.Local.sFIle,"/","\",V.Local.sFIle)
+	'F.Intrinsic.String.replace(V.Local.sFile,"\\\VAR","\\VAR",V.Local.sFile)
+	F.Intrinsic.String.Replace(V.Local.sFIle,"///","//",V.Local.sFIle)
+	F.Intrinsic.String.replace(V.Local.sFile,"&AMP;","&",V.Local.sFile)
+		F.Intrinsic.Debug.Stop
+	F.Intrinsic.String.Replace(V.Local.sFIle,"/","\",V.Local.sFIle)
+	F.Intrinsic.String.Left(V.Local.sFIle,2,V.Local.sret)
+	F.Intrinsic.Control.If(V.Local.sret,=,"VA")
+		F.Intrinsic.String.Concat("\\",V.Local.sFIle,V.Local.sFIle)
+	F.Intrinsic.Control.endif
+	F.Intrinsic.String.replace(V.Local.sFile,"%20"," ",V.Local.sFile)
+	F.Intrinsic.String.Left(V.Args.description,30,V.Local.shold)
+	F.Global.DocumentControl.AddDocument(V.args.id,V.Local.sFIle,V.local.sHold,1,"")
+F.Intrinsic.Control.endif
+
+
+Program.Sub.add_documents.End
+
+
