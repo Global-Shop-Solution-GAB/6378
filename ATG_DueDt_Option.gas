@@ -1,0 +1,255 @@
+Program.Sub.ScreenSU.Start
+gui.F_DueDt..create
+gui.F_DueDt..caption("Due Date Options")
+gui.F_DueDt..size(2880,2535)
+gui.F_DueDt..position(0,0)
+gui.F_DueDt..event(unload,Cancel)
+gui.F_DueDt..alwaysontop(False)
+gui.F_DueDt..fontname("Arial")
+gui.F_DueDt..fontsize(8)
+gui.F_DueDt..forecolor(0)
+gui.F_DueDt..fontstyle(,,,,)
+gui.F_DueDt..BackColor(-2147483633)
+gui.F_DueDt..controlbox(True)
+gui.F_DueDt..maxbutton(False)
+gui.F_DueDt..minbutton(False)
+gui.F_DueDt..mousepointer(0)
+gui.F_DueDt..moveable(True)
+gui.F_DueDt..sizeable(False)
+gui.F_DueDt..ShowInTaskBar(True)
+gui.F_DueDt..titlebar(True)
+gui.F_DueDt.lblDue.create(label,"Due Date",True,810,255,0,200,200,True,0,Arial,8,-2147483633,0)
+gui.F_DueDt.dtpDue.create(datepicker)
+gui.F_DueDt.dtpDue.visible(True)
+gui.F_DueDt.dtpDue.size(1365,285)
+gui.F_DueDt.dtpDue.zorder(0)
+gui.F_DueDt.dtpDue.position(1000,200)
+gui.F_DueDt.dtpDue.enabled(True)
+gui.F_DueDt.dtpDue.checkbox(False)
+gui.F_DueDt.optOpen.create(option)
+gui.F_DueDt.optOpen.caption("Open Ended")
+gui.F_DueDt.optOpen.visible(True)
+gui.F_DueDt.optOpen.size(1575,255)
+gui.F_DueDt.optOpen.zorder(0)
+gui.F_DueDt.optOpen.position(145,600)
+gui.F_DueDt.optOpen.enabled(True)
+gui.F_DueDt.optOpen.alignment(0)
+gui.F_DueDt.optOpen.fontname("Arial")
+gui.F_DueDt.optOpen.fontsize(8)
+gui.F_DueDt.optCust.create(option)
+gui.F_DueDt.optCust.caption("Customer Specified")
+gui.F_DueDt.optCust.visible(True)
+gui.F_DueDt.optCust.size(1770,255)
+gui.F_DueDt.optCust.zorder(0)
+gui.F_DueDt.optCust.position(145,900)
+gui.F_DueDt.optCust.enabled(True)
+gui.F_DueDt.optCust.alignment(0)
+gui.F_DueDt.optCust.fontname("Arial")
+gui.F_DueDt.optCust.fontsize(8)
+gui.F_DueDt.cmdOK.create(button)
+gui.F_DueDt.cmdOK.caption("OK")
+gui.F_DueDt.cmdOK.visible(True)
+gui.F_DueDt.cmdOK.size(855,375)
+gui.F_DueDt.cmdOK.zorder(0)
+gui.F_DueDt.cmdOK.position(200,1320)
+gui.F_DueDt.cmdOK.enabled(True)
+gui.F_DueDt.cmdOK.fontname("Arial")
+gui.F_DueDt.cmdOK.fontsize(8)
+gui.F_DueDt.cmdOK.event(click,Open_Update_New)
+gui.F_DueDt.cmdCancel.create(button)
+gui.F_DueDt.cmdCancel.caption("Cancel")
+gui.F_DueDt.cmdCancel.visible(True)
+gui.F_DueDt.cmdCancel.size(855,375)
+gui.F_DueDt.cmdCancel.zorder(0)
+gui.F_DueDt.cmdCancel.position(1300,1320)
+gui.F_DueDt.cmdCancel.enabled(True)
+gui.F_DueDt.cmdCancel.fontname("Arial")
+gui.F_DueDt.cmdCancel.fontsize(8)
+gui.F_DueDt.cmdCancel.event(click,Cancel)
+
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Variable.Global.sOrder.Declare(String)
+Variable.Global.sCust.Declare(String)
+Variable.Global.dDue.Declare(Date,1/1/2030)
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+V.Local.sDate.Declare(String)
+V.Local.sMonth.Declare(String)
+V.Local.sYr.Declare(String)
+V.Local.sDDate.Declare(String)
+V.Local.sPath.Declare(String)
+V.Local.bDir.Declare(Boolean)
+V.Local.iPID.Declare(Long)
+V.Local.bRet.Declare(Boolean)
+
+'F.Intrinsic.Debug.ShowCallerInfo
+'F.Intrinsic.Debug.InvokeDebugger
+	F.ODBC.Connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+F.Intrinsic.Debug.Stop
+	F.Intrinsic.Control.If(V.Caller.Hook,=,11872)
+		'read file
+		'save User_Field after the Header gets saved.
+		V.Global.sCust.Set(V.Passed.000006)
+		F.Intrinsic.String.Format(V.Passed.000003,"0000000",V.Global.sOrder)
+		F.Intrinsic.Control.CallSub(Write_data_new)
+		F.ODBC.Connection!con.Close
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.String.Concat(V.Caller.FilesDir,"\OETrue",".txt",V.Local.sPath)
+	F.Intrinsic.File.Exists(V.Local.sPath,V.Local.bDir)
+'	F.Intrinsic.File.DirExists(V.Local.sPath,V.Local.bDir)
+	F.Intrinsic.Control.If(V.Local.bDir,=,True)
+		F.Intrinsic.File.DeleteFile(V.Local.sPath)
+		F.Intrinsic.Control.CallSub(Cancel)
+	F.Intrinsic.Control.EndIf
+	V.Global.sCust.Set(V.Passed.000006)
+	F.Intrinsic.String.Format(V.Passed.000003,"0000000",V.Global.sOrder)
+	'V.Global.sOrder.Set(V.Passed.000003)
+	'F.Intrinsic.UI.Msgbox(V.Passed.000024)
+	F.Intrinsic.date.ConvertDString(V.Passed.000024,"mm/dd/yy",V.Global.dDue)
+
+	Gui.F_DueDt.dtpDue.Value(V.Global.dDue)
+	Gui.F_DueDt..Show
+	
+Program.Sub.Main.End
+
+Program.Sub.Open_Update.Start
+V.Local.sSQL.Declare(String)
+V.Local.sString.Declare(String)
+V.Local.sOpt.Declare(String)
+V.Local.iHdl.Declare(Long)
+V.Local.sPath.Declare(String)
+V.Local.sDate.Declare(String)
+V.Local.sDDate.Declare(String)
+V.Local.bDir.Declare(Boolean)
+
+F.Intrinsic.String.Concat("Select * from Order_Header where Order_No='",V.Global.sOrder,"' and Record_Type='A' and Customer Like'",V.Global.sCust,"%'",V.Local.sSQL)
+
+'F.Intrinsic.String.Concat("Select * from Order_Header where ORDER_NO='",V.Global.sOrder,"'",V.Local.sSQL)
+'andRecord_Type='A'andCustomerLike'",V.Global.sCust,"%'",V.Local.sSQL)
+'F.ODBC.con!rstOpen.Close
+Gui.F_DueDt..Enabled(False)
+F.Intrinsic.String.Format(V.Screen.F_DueDt!dtpDue.Value,"yyyymmdd",V.Local.sDate)
+V.Passed.000024.Set(V.Local.sDate)
+
+F.ODBC.Connection!con.OpenRecordsetRW("rstOpen",V.Local.sSQL)
+F.Intrinsic.Control.If(V.ODBC.con!rstOpen.EOF,=,False)
+	F.Intrinsic.String.Format(V.Screen.F_DueDt!dtpDue.Value,"yyyymmdd",V.Local.sDate)
+	'F.Intrinsic.Debug.Stop
+	F.Intrinsic.String.Format(V.Screen.F_DueDt!dtpDue.Value,"mmddyy",V.Local.sDDate)
+'	F.ODBC.con!rstOpen.set!Date_Due(V.Screen.F_DueDt!dtpDue.Value)
+	F.ODBC.con!rstOpen.set!Date_Due(V.Local.sDDate)
+	F.Intrinsic.Control.If(V.Screen.F_DueDt!optOpen.Value,=,True)
+		F.ODBC.con!rstOpen.Set!User_5("Open Ended")
+		V.Local.sOpt.Set("Open Ended")
+	F.Intrinsic.Control.ElseIf(V.Screen.F_DueDt!optCust.Value,=,True)
+		F.ODBC.con!rstOpen.Set!User_5("Customer Specified")
+		V.Local.sOpt.Set("Customer Specified")
+	F.Intrinsic.Control.EndIf
+	F.ODBC.con!rstOpen.Update
+	'F.ODBC.con!rstOpen.Close
+	V.Passed.000024.Set(V.Local.sDate)
+	F.Intrinsic.String.Concat(V.Caller.FilesDir,"\OETrue",".txt",V.Local.sPath)
+	F.Intrinsic.File.String2File(V.Local.sPath,V.Local.sOpt)
+F.Intrinsic.Control.Else
+	'create file
+	F.Intrinsic.String.Concat(V.Caller.FilesDir,"\",V.Global.sOrder,".txt",V.Local.sPath)
+	F.Intrinsic.File.String2File(V.Local.sPath,V.Local.sOpt)
+F.Intrinsic.Control.EndIf
+F.ODBC.con!rstOpen.Close
+Gui.F_DueDt..Enabled(True)
+F.Intrinsic.Control.CallSub(Cancel)
+
+Program.Sub.Open_Update.End
+
+Program.Sub.Write_Data_New.Start
+V.Local.sSQL.Declare(String)
+V.Local.sString.Declare(String)
+V.Local.sOpt.Declare(String)
+V.Local.iHdl.Declare(Long)
+V.Local.sPath.Declare(String)
+V.Local.bExist.Declare(Boolean)
+
+F.Intrinsic.Debug.Stop
+F.Intrinsic.String.Concat(V.Caller.FilesDir,"\",V.Global.sOrder,".txt",V.Local.sPath)
+F.Intrinsic.File.Exists(V.Local.sPath,V.Local.bExist)
+F.Intrinsic.Control.If(V.Local.bExist,=,True)
+	F.Intrinsic.File.GetHandle(V.Local.iHdl)
+	F.Intrinsic.File.OpenForRead(V.Local.sPath,V.Local.iHdl)
+	F.Intrinsic.File.ReadLine(V.Local.iHdl,V.Local.sOpt)
+	F.Intrinsic.File.CloseFile(V.Local.iHdl)
+
+	F.Intrinsic.Control.If(V.Local.sOpt,<>,"")
+		F.Intrinsic.String.Concat("Select * from Order_Header where Order_No='",V.Global.sOrder,"' and Record_Type='A' and Customer='",V.Global.sCust,"'",V.Local.sSQL)
+		F.ODBC.Connection!con.OpenRecordsetRW("rstData",V.Local.sSQL)
+		F.Intrinsic.Control.If(V.ODBC.con!rstData.EOF,=,False)
+			F.ODBC.con!rstData.Set!User_5(V.Local.sOpt)
+			F.ODBC.con!rstData.Update
+			F.ODBC.con!rstData.Close
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.File.DeleteFile(V.Local.sPath)
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.CallSub(Cancel)
+
+
+Program.Sub.Write_Data_New.End
+
+Program.Sub.Cancel.Start
+F.ODBC.Connection!con.Close
+F.Intrinsic.Control.End
+
+Program.Sub.Cancel.End
+
+Program.Sub.Open_Update_New.Start
+V.Local.sSQL.Declare(String)
+V.Local.sString.Declare(String)
+V.Local.sOpt.Declare(String)
+V.Local.iHdl.Declare(Long)
+V.Local.sPath.Declare(String)
+V.Local.sDate.Declare(String)
+V.Local.sDDate.Declare(String)
+V.Local.bDir.Declare(Boolean)
+
+Gui.F_DueDt..Enabled(False)
+F.Intrinsic.String.Format(V.Screen.F_DueDt!dtpDue.Value,"yyyymmdd",V.Local.sDate)
+V.Passed.000024.Set(V.Local.sDate)
+F.Intrinsic.String.Concat("Select * from Order_Header where Order_No='",V.Global.sOrder,"' and Record_Type='A' and Customer Like'",V.Global.sCust,"%'",V.Local.sSQL)
+
+F.Intrinsic.Control.If(V.Screen.F_DueDt!optOpen.Value,=,True)
+	V.Local.sOpt.Set("Open Ended")
+F.Intrinsic.Control.ElseIf(V.Screen.F_DueDt!optCust.Value,=,True)
+	V.Local.sOpt.Set("Customer Specified")
+F.Intrinsic.Control.EndIf
+
+F.ODBC.Connection!con.OpenRecordsetRW("rstOpen",V.Local.sSQL)
+F.Intrinsic.Control.If(V.ODBC.con!rstOpen.EOF,=,False)
+	F.Intrinsic.String.Format(V.Screen.F_DueDt!dtpDue.Value,"yyyymmdd",V.Local.sDate)
+	'F.Intrinsic.Debug.Stop
+	F.Intrinsic.String.Format(V.Screen.F_DueDt!dtpDue.Value,"mmddyy",V.Local.sDDate)
+	F.ODBC.con!rstOpen.set!Date_Due(V.Local.sDDate)
+	F.ODBC.con!rstOpen.Set!User_5(V.Local.sOpt)
+	F.ODBC.con!rstOpen.Update
+	F.Intrinsic.String.Concat(V.Caller.FilesDir,"\OETrue",".txt",V.Local.sPath)
+	F.Intrinsic.File.String2File(V.Local.sPath,V.Local.sOpt)
+	F.Intrinsic.String.Concat(V.Caller.FilesDir,"\",V.Global.sOrder,".txt",V.Local.sPath)
+	F.Intrinsic.File.String2File(V.Local.sPath,V.Local.sOpt)
+	F.Intrinsic.Control.CallSub(Cancel)
+F.Intrinsic.Control.Else
+	'create file
+	F.Intrinsic.String.Concat(V.Caller.FilesDir,"\",V.Global.sOrder,".txt",V.Local.sPath)
+	F.Intrinsic.File.String2File(V.Local.sPath,V.Local.sOpt)
+	F.Intrinsic.String.Concat(V.Caller.FilesDir,"\OETrue",".txt",V.Local.sPath)
+	F.Intrinsic.File.String2File(V.Local.sPath,V.Local.sOpt)
+F.Intrinsic.Control.EndIf
+F.ODBC.con!rstOpen.Close
+Gui.F_DueDt..Enabled(True)
+
+Program.Sub.Open_Update_New.End
+
+
