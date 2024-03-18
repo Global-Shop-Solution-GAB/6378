@@ -1,0 +1,68 @@
+﻿Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Project: 6378 Remove WO labor dollars from WO screens 
+'Author: Brandon Medina
+'Quote: 12940 
+'Customer: CEI Materials 
+'Date Start: 6/7/21 
+F.Intrinsic.Control.Try
+	V.Local.bIsInGroup.Declare
+	V.Local.sRowContent.Declare
+	V.Local.sSeqType.Declare
+	V.Local.iRowCount.Declare
+	V.Local.i.Declare
+	V.Local.sOverrideString.Declare
+	
+	'Hook: 13860 WOS061D Populate Hook (Nope, this allows user to see the original values for a split second)
+	'Passed: 000168 > TOTAL-HOURS-TOT 
+	'Check user permission
+	F.Global.Security.IsInGroup(V.Caller.User, "WOMGMT", V.Local.bIsInGroup)
+	
+	F.Intrinsic.Control.If(V.Local.bIsInGroup, <>, True)
+		'Not in group, will set BDF for grid to have labor dollars = 0 as well as label at bottom 
+		'Total Hours
+		'V.Passed.000147.Set("0.00")
+		'Total Dollars 
+		V.Passed.000010.Set("0.00")
+		
+		F.Intrinsic.BDF.Load("Dollars", "AUX001")
+		F.Intrinsic.BDF.Clone("Dollars", "DollarsCopy")
+		F.Intrinsic.BDF.ReadRowCount("Dollars", V.Local.iRowCount)
+		F.Intrinsic.Math.Sub(V.Local.iRowCount, 1, V.Local.iRowCount)
+		F.Intrinsic.Control.For(V.Local.i, 0, V.Local.iRowCount, 1)
+			F.Intrinsic.BDF.TextMatrix("Dollars", 2, V.Local.i, V.Local.sSeqType)
+			F.Intrinsic.Control.If(V.Local.sSeqType, =, "L")
+				'If labor sequence, set dollars to 0
+				F.Intrinsic.BDF.ReadRow("Dollars", V.Local.i, V.Local.sRowContent)
+				F.Intrinsic.String.Split(V.Local.sRowContent, "|~|", V.Local.sRowContent)
+				V.Local.sRowContent(11).Set(0.00)
+				F.Intrinsic.String.Join(V.Local.sRowContent, "|~|", V.Local.sRowContent)
+				F.Intrinsic.BDF.WriteRow("DollarsCopy", V.Local.sRowContent)
+			F.Intrinsic.Control.Else
+				'Otherwise just copy over original data to clone BDF 
+				F.Intrinsic.BDF.ReadRow("Dollars", V.Local.i, V.Local.sRowContent)
+				F.Intrinsic.BDF.WriteRow("DollarsCopy", V.Local.sRowContent)
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.Next(v.Local.i)
+		F.Intrinsic.BDF.Save("DollarsCopy", "AUX001")
+	F.Intrinsic.Control.EndIf
+	
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+F.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.ErrorMsg.Start
+v.Local.sError.Declare
+
+'Generic Error message.
+f.Intrinsic.String.Build("Project GCG_6378_NoWODollars.g2u {0}{0}Subroutine: {1}{0}Error: {2} with Description: {3}", v.Ambient.NewLine, v.Args.CurrentSub, v.Ambient.ErrorNumber, v.Ambient.ErrorDescription, v.Local.sError)
+f.Intrinsic.UI.Msgbox(v.Local.sError)
+Program.Sub.ErrorMsg.End
+
+Program.Sub.Comments.Start
+${$5$}$3.0.0.0$}$1
+${$6$}$bmedina$}$20210608103849345$}$kOipCrsyLBVj2KoSwkcdK23ChxGVcBlE4r/bykvurQaMkV1OnLwDD13zt2xpdOotXx6E79ig7LY=
+Program.Sub.Comments.End
